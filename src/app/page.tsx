@@ -1,95 +1,99 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
-
-const contentBlocks = [
-  { id: 1, text: 'Content 1', bgClass: 'bg-light' },
-  { id: 2, text: 'Content 2', bgClass: 'bg-secondary text-white' },
-  { id: 3, text: 'Content 3', bgClass: 'bg-info text-white' },
+const sections = [
+  'First dynamic section',
+  'Second dynamic section',
+  'Third dynamic section',
+  'Fourth dynamic section'
 ];
 
-const Page = () => {
-  const leftPanelRef = useRef<HTMLDivElement>(null);
-  const rightPanelRef = useRef<HTMLDivElement>(null);
+export default function HomePage() {
+  const stickyRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    const panels = gsap.utils.toArray('.right-panel-content');
-
-    gsap.to(panels, {
-      yPercent: -100 * (panels.length - 1),
-      ease: 'none',
-      scrollTrigger: {
-        trigger: rightPanelRef.current,
-        start: 'top top',
-        end: () => `+=${rightPanelRef.current?.offsetHeight}`,
-        scrub: true,
-        pin: true,
-        anticipatePin: 1,
-        snap: 1 / (panels.length - 1),
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            gsap.fromTo(
+              entry.target,
+              { opacity: 0, y: 50 },
+              { opacity: 1, y: 0, duration: 0.5 }
+            );
+          }
+        });
       },
-    });
+      { threshold: 0.5 }
+    );
 
-    panels.forEach((panel) => {
-      gsap.fromTo(
-        panel,
-        { opacity: 0, y: 50 },
-        {
-          opacity: 1,
-          y: 0,
-          scrollTrigger: {
-            trigger: panel,
-            start: 'top 80%',
-            end: 'top 40%',
-            scrub: true,
-          },
-        }
-      );
+    document.querySelectorAll('.section').forEach((section) => {
+      observer.observe(section);
     });
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!stickyRef.current) return;
+      const scrollPosition = window.scrollY;
+      const sectionHeight = window.innerHeight;
+      const newIndex = Math.floor(scrollPosition / sectionHeight) % sections.length;
+      if (newIndex !== currentIndex) {
+        gsap.fromTo(
+          stickyRef.current,
+          { opacity: 0, y: 50 },
+          { opacity: 1, y: 0, duration: 0.5 }
+        );
+        setCurrentIndex(newIndex);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentIndex]);
+
   return (
     <div>
-      <section className="container py-5">
-        <h1 className="text-center">Introductory Content</h1>
-        <p className="text-center">Scroll down to see the effect.</p>
+      <header className="bg-primary text-white text-center p-4">
+        <h1>Next.js SPA with GSAP & Bootstrap</h1>
+      </header>
+
+      <section className="banner text-center bg-dark text-white py-5">
+        <h2>Welcome to our page</h2>
       </section>
 
-      <section className="vh-100 bg-dark text-white d-flex align-items-center justify-content-center">
-        <h2>Banner Section</h2>
-      </section>
+      {[...Array(3)].map((_, i) => (
+        <section key={i} className="section d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
+          <h2>Dummy Section {i + 1}</h2>
+        </section>
+      ))}
 
-      <section className="container-fluid">
-        <div className="row">
-          <div
-            className="col-md-6 bg-dark text-white d-flex align-items-center justify-content-center position-sticky"
-            style={{ top: 0, height: '100vh' }}
-            ref={leftPanelRef}
-          >
-            <h2>Fixed Left Panel</h2>
-          </div>
-          <div className="col-md-6 p-0" ref={rightPanelRef}>
-            {contentBlocks.map((block) => (
-              <div
-                key={block.id}
-                className={`right-panel-content d-flex align-items-center justify-content-center ${block.bgClass}`}
-                style={{ height: '100vh' }}
-              >
-                <h3>{block.text}</h3>
-              </div>
-            ))}
-          </div>
+      <section className="sticky-container" style={{ position: 'relative', height: '200vh', background: '#f8f9fa' }}>
+        <div
+          ref={stickyRef}
+          className="sticky-content text-center p-5"
+          style={{
+            position: 'sticky',
+            top: '30%',
+            transform: 'translateY(-50%)',
+            background: 'white',
+            padding: '20px',
+            borderRadius: '10px',
+            boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+          }}
+        >
+          <h2>{sections[currentIndex]}</h2>
         </div>
       </section>
 
-      <section className="container py-5">
-        <h2 className="text-center">Normal Scrolling Resumes</h2>
-      </section>
+      {[...Array(2)].map((_, i) => (
+        <section key={i + 3} className="section d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
+          <h2>Dummy Section {i + 4}</h2>
+        </section>
+      ))}
     </div>
   );
-};
-
-export default Page;
+}
