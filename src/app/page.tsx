@@ -1,51 +1,34 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+import { gsap } from 'gsap'; 
 
 const sections = [
-  'First dynamic section',
-  'Second dynamic section',
-  'Third dynamic section',
-  'Fourth dynamic section'
+  'First dynamic text',
+  'Second dynamic text',
+  'Third dynamic text',
+  'Fourth dynamic text'
 ];
 
 export default function HomePage() {
   const stickyRef = useRef(null);
+  const textRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            gsap.fromTo(
-              entry.target,
-              { opacity: 0, y: 50 },
-              { opacity: 1, y: 0, duration: 0.5 }
-            );
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    document.querySelectorAll('.section').forEach((section) => {
-      observer.observe(section);
-    });
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       if (!stickyRef.current) return;
       const scrollPosition = window.scrollY;
-      const sectionHeight = window.innerHeight;
-      const newIndex = Math.floor(scrollPosition / sectionHeight) % sections.length;
+      const sectionOffsetTop = stickyRef.current.parentElement.offsetTop;
+      const sectionHeight = stickyRef.current.parentElement.clientHeight;
+      const progress = (scrollPosition - sectionOffsetTop) / sectionHeight;
+      const newIndex = Math.min(Math.max(Math.floor(progress * sections.length), 0), sections.length - 1);
+
       if (newIndex !== currentIndex) {
         gsap.fromTo(
-          stickyRef.current,
+          textRef.current,
           { opacity: 0, y: 50 },
-          { opacity: 1, y: 0, duration: 0.5 }
+          { opacity: 1, y: 0, duration: 0.5, ease: 'bounce.out' }
         );
         setCurrentIndex(newIndex);
       }
@@ -71,25 +54,33 @@ export default function HomePage() {
         </section>
       ))}
 
-      <section className="sticky-container" style={{ position: 'relative', height: '200vh', background: '#f8f9fa' }}>
-        <div
-          ref={stickyRef}
-          className="sticky-content text-center p-5"
-          style={{
-            position: 'sticky',
-            top: '30%',
-            transform: 'translateY(-50%)',
-            background: 'white',
-            padding: '20px',
-            borderRadius: '10px',
-            boxShadow: '0 0 10px rgba(0,0,0,0.1)'
-          }}
-        >
-          <h2>{sections[currentIndex]}</h2>
+      <section className="sticky-container" style={{ position: 'relative', height: '300vh', background: '#f8f9fa' }}>
+        <div className='row' style={{ position: 'sticky', top: '20%', height: '60vh', display: 'flex', alignItems: 'center' }}>
+          <div className='col-6 d-flex align-items-center justify-content-center' style={{ height: '100%', padding: '20px' }}>
+            <img src="https://via.placeholder.com/300" alt="Placeholder" style={{ width: '100%', borderRadius: '10px' }} />
+          </div>
+          <div className='col-6'>
+            <div
+              ref={stickyRef}
+              className="sticky-content text-center p-5"
+              style={{
+                background: 'white',
+                padding: '20px',
+                borderRadius: '10px',
+                boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+                minHeight: '200px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <h2 ref={textRef}>{sections[currentIndex]}</h2>
+            </div>
+          </div>
         </div>
       </section>
 
-      {[...Array(2)].map((_, i) => (
+      {[...Array(6)].map((_, i) => (
         <section key={i + 3} className="section d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
           <h2>Dummy Section {i + 4}</h2>
         </section>
