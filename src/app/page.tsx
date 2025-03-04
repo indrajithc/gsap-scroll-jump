@@ -10,7 +10,7 @@ const sections = [
   "Welcome to Our Website",
   "Discover Our Features",
   "Learn More About Us",
-  "Get in Touch Today"
+  "Get in Touch Today",
 ];
 
 export default function Page() {
@@ -18,14 +18,14 @@ export default function Page() {
   const rightPanelRef = useRef(null);
 
   useLayoutEffect(() => {
-    const tl = gsap.timeline({
+
+    let tl = gsap.timeline({
       scrollTrigger: {
-        trigger: rightPanelRef.current,
-    start: "top top",
-        end: "bottom bottom",
+        trigger: containerRef.current,
+        start: "top top",
+        end: "+=300%", // Controls the duration of the pinned section
         scrub: 1,
         pin: true,
-      
       }
     });
 
@@ -33,13 +33,13 @@ export default function Page() {
       tl.to(rightPanelRef.current, {
         y: `-${i * 100}vh`,
         duration: 1,
+        ease: "power2.out"
       });
     });
   }, []);
 
   return (
     <div>
-
       <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
         <h1 className="display-4 fw-bold">Header Section</h1>
       </div>
@@ -50,20 +50,29 @@ export default function Page() {
         <div className="w-50 d-flex align-items-center justify-content-center fs-3 fw-bold">
           Static Left Panel
         </div>
-    <div ref={containerRef} className="position-relative d-flex flex-column" style={{ height: "400vh" }}>
-        <div ref={rightPanelRef} className="w-50 position-absolute top-0 end-0 h-100 overflow-hidden">
-          {sections.map((text, i) => (
-            <div key={i} className="vh-100 d-flex align-items-center justify-content-center fs-2 fw-semibold">
-              {text}
-            </div>
-          ))}
+        <div
+          ref={containerRef}
+          className="w-50 position-relative d-flex flex-column"
+          style={{ height: "400vh" }}
+        >
+          <div
+            ref={rightPanelRef}
+            className="w-50 position-absolute top-0 end-0 h-100 overflow-hidden"
+          >
+            {sections.map((text, i) => (
+              <div
+                key={i}
+                className="vh-100 d-flex align-items-center justify-content-center fs-2 fw-semibold"
+              >
+                {text}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>  
       <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
         <h1 className="display-4 fw-bold">Footer Section</h1>
       </div>
-      </div>
-
+    </div>
   );
 }
