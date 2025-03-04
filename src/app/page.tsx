@@ -2,79 +2,94 @@
 
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger'; 
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function Page() {
-  const rightPanelRef = useRef(null);
-  const containerRef = useRef(null);
+const contentBlocks = [
+  { id: 1, text: 'Content 1', bgClass: 'bg-light' },
+  { id: 2, text: 'Content 2', bgClass: 'bg-secondary text-white' },
+  { id: 3, text: 'Content 3', bgClass: 'bg-info text-white' },
+];
+
+const Page = () => {
+  const leftPanelRef = useRef<HTMLDivElement>(null);
+  const rightPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const rightPanel = rightPanelRef.current;
-    const container = containerRef.current;
-    const items = rightPanel.querySelectorAll('.scroll-item');
+    const panels = gsap.utils.toArray('.right-panel-content');
 
-    gsap.to(items, {
-      yPercent: -100 * (items.length - 3), // Moves through each item
+    gsap.to(panels, {
+      yPercent: -100 * (panels.length - 1),
       ease: 'none',
       scrollTrigger: {
-        trigger: container,
+        trigger: rightPanelRef.current,
         start: 'top top',
-        end: `+=${items.length * 100}%`,
-        pin: '.left-panel', // Pins the left panel
+        end: () => `+=${rightPanelRef.current?.offsetHeight}`,
         scrub: true,
+        pin: true,
+        anticipatePin: 1,
+        snap: 1 / (panels.length - 1),
       },
+    });
+
+    panels.forEach((panel) => {
+      gsap.fromTo(
+        panel,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          scrollTrigger: {
+            trigger: panel,
+            start: 'top 80%',
+            end: 'top 40%',
+            scrub: true,
+          },
+        }
+      );
     });
   }, []);
 
   return (
     <div>
-      {/* Full-Height Banner */}
-      <section className="vh-100 bg-primary text-white d-flex align-items-center justify-content-center">
-        <h1>Full-Height Banner</h1>
+      <section className="container py-5">
+        <h1 className="text-center">Introductory Content</h1>
+        <p className="text-center">Scroll down to see the effect.</p>
       </section>
 
-      <section className="vh-100 bg-secondary text-white d-flex align-items-center justify-content-center">
-        <h1>Full-Height Banner Two</h1>
+      <section className="vh-100 bg-dark text-white d-flex align-items-center justify-content-center">
+        <h2>Banner Section</h2>
       </section>
 
-      <section className="vh-100 bg-warning text-white d-flex align-items-center justify-content-center">
-        <h1>Full-Height Banner Three</h1>
-      </section>
-
-      {/* Scrolling Section */}
-      <section ref={containerRef} className="container-fluid overflow-hidden">
+      <section className="container-fluid">
         <div className="row">
-          {/* Left Panel (Static) */}
-          <div className="col-md-6 left-panel bg-dark text-white d-flex align-items-center justify-content-center p-5">
-            <h2>Static Left Panel</h2>
+          <div
+            className="col-md-6 bg-dark text-white d-flex align-items-center justify-content-center position-sticky"
+            style={{ top: 0, height: '100vh' }}
+            ref={leftPanelRef}
+          >
+            <h2>Fixed Left Panel</h2>
           </div>
-
-          {/* Right Panel (Scrolling Content) */}
-          <div ref={rightPanelRef} className="col-md-6 right-panel position-relative">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="scroll-item bg-light border p-5 vh-100 d-flex align-items-center justify-content-center">
-                <h3>Content Block {i + 1}</h3>
+          <div className="col-md-6 p-0" ref={rightPanelRef}>
+            {contentBlocks.map((block) => (
+              <div
+                key={block.id}
+                className={`right-panel-content d-flex align-items-center justify-content-center ${block.bgClass}`}
+                style={{ height: '100vh' }}
+              >
+                <h3>{block.text}</h3>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Normal Scrolling Section */}
-      <section className="vh-100 bg-white text-danger d-flex align-items-center justify-content-center">
-        <h2>Next Section</h2>
-      </section>
-
-      <section className="vh-100 bg-secondary text-info d-flex align-items-center justify-content-center">
-        <h2>Next Section</h2>
-      </section>
-
       <section className="container py-5">
-        <h2>Next Section</h2>
-        <p>This section scrolls normally after the right panel finishes.</p>
+        <h2 className="text-center">Normal Scrolling Resumes</h2>
       </section>
     </div>
   );
-}
+};
+
+export default Page;
