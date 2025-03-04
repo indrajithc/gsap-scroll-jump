@@ -1,90 +1,89 @@
-'use client';
+"use client"
+import { useLayoutEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap'; 
+gsap.registerPlugin(ScrollTrigger);
 
-const sections = [
-  'First dynamic text',
-  'Second dynamic text',
-  'Third dynamic text',
-  'Fourth dynamic text'
-];
+function Example() {
+  const comp = useRef(null);
+  const galleryRef = useRef(null);
 
-export default function HomePage() {
-  const stickyRef = useRef(null);
-  const textRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  useLayoutEffect(() => {
+    const details = gsap.utils.toArray(".content-section:not(:first-child)");
+    const cards = gsap.utils.toArray(".desktop-photo:not(:first-child)");
+    gsap.set(cards, { yPercent: 100, opacity: 0 });
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!stickyRef.current) return;
-      const scrollPosition = window.scrollY;
-      const sectionOffsetTop = stickyRef.current.parentElement.offsetTop;
-      const sectionHeight = stickyRef.current.parentElement.clientHeight;
-      const progress = (scrollPosition - sectionOffsetTop) / sectionHeight;
-      const newIndex = Math.min(Math.max(Math.floor(progress * sections.length), 0), sections.length - 1);
+    let mm = gsap.matchMedia(comp);
 
-      if (newIndex !== currentIndex) {
-        gsap.fromTo(
-          textRef.current,
-          { opacity: 0, y: 50 },
-          { opacity: 1, y: 0, duration: 0.5, ease: 'bounce.out' }
-        );
-        setCurrentIndex(newIndex);
-      }
+    mm.add("(min-width: 600px)", () => {
+      ScrollTrigger.create({
+        trigger: galleryRef.current,
+        start: "top top",
+        end: "bottom bottom",
+        pin: ".right"
+      });
+
+      details.forEach((detail, index) => {
+        let headline = detail.querySelector("h1");
+
+        let animation = gsap
+          .timeline()
+          .to(cards[index], { yPercent: 0, opacity: 1, duration: 0.5, ease: "power2.out" })
+          .set(cards[index - 1], { opacity: 0 });
+
+        ScrollTrigger.create({
+          trigger: headline,
+          start: "top 80%",
+          end: "top 50%",
+          animation: animation,
+          scrub: true,
+          markers: false
+        });
+      });
+    });
+
+    return () => {
+      mm.revert();
     };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentIndex]);
+  }, []);
 
   return (
-    <div>
-      <header className="bg-primary text-white text-center p-4">
-        <h1>Next.js SPA with GSAP & Bootstrap</h1>
-      </header>
-
-      <section className="banner text-center bg-dark text-white py-5">
-        <h2>Welcome to our page</h2>
-      </section>
-
-      {[...Array(3)].map((_, i) => (
-        <section key={i} className="section d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
-          <h2>Dummy Section {i + 1}</h2>
-        </section>
-      ))}
-
-      <section className="sticky-container" style={{ position: 'relative', height: '300vh', background: '#f8f9fa' }}>
-        <div className='row' style={{ position: 'sticky', top: '20%', height: '60vh', display: 'flex', alignItems: 'center' }}>
-          <div className='col-6 d-flex align-items-center justify-content-center' style={{ height: '100%', padding: '20px' }}>
-            <img src="https://via.placeholder.com/300" alt="Placeholder" style={{ width: '100%', borderRadius: '10px' }} />
-          </div>
-          <div className='col-6'>
-            <div
-              ref={stickyRef}
-              className="sticky-content text-center p-5"
-              style={{
-                background: 'white',
-                padding: '20px',
-                borderRadius: '10px',
-                boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-                minHeight: '200px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <h2 ref={textRef}>{sections[currentIndex]}</h2>
+    <div ref={comp} className="container-fluid bg-light">
+      <div className="spacer w-100 vh-50 bg-secondary"></div>
+      <div ref={galleryRef} className="row g-0 gallery">
+        <div className="col-md-6 d-none d-md-block left">
+          <div className="desktop-content px-5">
+            <div className="content-section py-5">
+              <h1 className="display-4">Red</h1>
+              <p className="fs-3">Red is a color often associated with strong emotions...</p>
+            </div>
+            <div className="content-section py-5">
+              <h1 className="display-4">Green</h1>
+              <p className="fs-3">Green is a color often associated with nature, growth, and harmony...</p>
+            </div>
+            <div className="content-section py-5">
+              <h1 className="display-4">Pink</h1>
+              <p className="fs-3">Pink is a color associated with femininity, romance, and sweetness...</p>
+            </div>
+            <div className="content-section py-5">
+              <h1 className="display-4">Blue</h1>
+              <p className="fs-3">Blue is a color associated with calmness, trust, and reliability...</p>
             </div>
           </div>
         </div>
-      </section>
-
-      {[...Array(6)].map((_, i) => (
-        <section key={i + 3} className="section d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
-          <h2>Dummy Section {i + 4}</h2>
-        </section>
-      ))}
+        <div className="col-md-6 right d-flex flex-column justify-content-center align-items-center">
+          <div className="desktop-photos position-relative w-50 h-50 rounded-3 shadow-lg overflow-hidden">
+            <div className="desktop-photo position-absolute w-100 h-100 bg-danger text-white d-flex align-items-center justify-content-center fs-2 rounded-3">Red</div>
+            <div className="desktop-photo position-absolute w-100 h-100 bg-success text-white d-flex align-items-center justify-content-center fs-2 rounded-3">Green</div>
+            <div className="desktop-photo position-absolute w-100 h-100 bg-pink text-white d-flex align-items-center justify-content-center fs-2 rounded-3">Pink</div>
+            <div className="desktop-photo position-absolute w-100 h-100 bg-primary text-white d-flex align-items-center justify-content-center fs-2 rounded-3">Blue</div>
+          </div>
+        </div>
+      </div>
+      <div className="spacer w-100 vh-50 bg-secondary"></div>
     </div>
   );
 }
+
+export default Example;
