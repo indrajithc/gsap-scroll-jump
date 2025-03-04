@@ -1,78 +1,80 @@
-"use client";
+'use client';
 
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger'; 
 
 gsap.registerPlugin(ScrollTrigger);
 
-const sections = [
-  "Welcome to Our Website",
-  "Discover Our Features",
-  "Learn More About Us",
-  "Get in Touch Today",
-];
-
 export default function Page() {
-  const containerRef = useRef(null);
   const rightPanelRef = useRef(null);
+  const containerRef = useRef(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    const rightPanel = rightPanelRef.current;
+    const container = containerRef.current;
+    const items = rightPanel.querySelectorAll('.scroll-item');
 
-    let tl = gsap.timeline({
+    gsap.to(items, {
+      yPercent: -100 * (items.length - 3), // Moves through each item
+      ease: 'none',
       scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: "+=300%", // Controls the duration of the pinned section
-        scrub: 1,
-        pin: true,
-      }
-    });
-
-    sections.forEach((_, i) => {
-      tl.to(rightPanelRef.current, {
-        y: `-${i * 100}vh`,
-        duration: 1,
-        ease: "power2.out"
-      });
+        trigger: container,
+        start: 'top top',
+        end: `+=${items.length * 100}%`,
+        pin: '.left-panel', // Pins the left panel
+        scrub: true,
+      },
     });
   }, []);
 
   return (
     <div>
-      <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
-        <h1 className="display-4 fw-bold">Header Section</h1>
-      </div>
-      <div className="d-flex align-items-center justify-content-center vh-100 bg-secondary text-white">
-        <h1 className="display-4 fw-bold">Banner Section</h1>
-      </div>
-      <div className="vh-100 d-flex align-items-center justify-content-center bg-white position-relative overflow-hidden">
-        <div className="w-50 d-flex align-items-center justify-content-center fs-3 fw-bold">
-          Static Left Panel
-        </div>
-        <div
-          ref={containerRef}
-          className="w-50 position-relative d-flex flex-column"
-          style={{ height: "400vh" }}
-        >
-          <div
-            ref={rightPanelRef}
-            className="w-50 position-absolute top-0 end-0 h-100 overflow-hidden"
-          >
-            {sections.map((text, i) => (
-              <div
-                key={i}
-                className="vh-100 d-flex align-items-center justify-content-center fs-2 fw-semibold"
-              >
-                {text}
+      {/* Full-Height Banner */}
+      <section className="vh-100 bg-primary text-white d-flex align-items-center justify-content-center">
+        <h1>Full-Height Banner</h1>
+      </section>
+
+      <section className="vh-100 bg-secondary text-white d-flex align-items-center justify-content-center">
+        <h1>Full-Height Banner Two</h1>
+      </section>
+
+      <section className="vh-100 bg-warning text-white d-flex align-items-center justify-content-center">
+        <h1>Full-Height Banner Three</h1>
+      </section>
+
+      {/* Scrolling Section */}
+      <section ref={containerRef} className="container-fluid overflow-hidden">
+        <div className="row">
+          {/* Left Panel (Static) */}
+          <div className="col-md-6 left-panel bg-dark text-white d-flex align-items-center justify-content-center p-5">
+            <h2>Static Left Panel</h2>
+          </div>
+
+          {/* Right Panel (Scrolling Content) */}
+          <div ref={rightPanelRef} className="col-md-6 right-panel position-relative">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="scroll-item bg-light border p-5 vh-100 d-flex align-items-center justify-content-center">
+                <h3>Content Block {i + 1}</h3>
               </div>
             ))}
           </div>
         </div>
-      </div>
-      <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
-        <h1 className="display-4 fw-bold">Footer Section</h1>
-      </div>
+      </section>
+
+      {/* Normal Scrolling Section */}
+      <section className="vh-100 bg-white text-danger d-flex align-items-center justify-content-center">
+        <h2>Next Section</h2>
+      </section>
+
+      <section className="vh-100 bg-secondary text-info d-flex align-items-center justify-content-center">
+        <h2>Next Section</h2>
+      </section>
+
+      <section className="container py-5">
+        <h2>Next Section</h2>
+        <p>This section scrolls normally after the right panel finishes.</p>
+      </section>
     </div>
   );
 }
